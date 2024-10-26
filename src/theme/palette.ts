@@ -147,7 +147,7 @@ export function palette(mode: 'light' | 'dark') {
     },
     background: {
       paper: grey[800],
-      default: grey[900],
+      default: '#0B1727',
       neutral: alpha(grey[500], 0.12),
     },
     action: {
