@@ -30,6 +30,17 @@ export default function RHFTextField({ name, helperText, type, ...other }: Props
           }}
           error={!!error}
           helperText={error ? error?.message : helperText}
+          size='small'
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: 'white',
+              borderRadius: "5px",
+              color: "black",
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+            },
+          }}
           {...other}
         />
       )}
