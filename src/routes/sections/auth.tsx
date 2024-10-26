@@ -8,14 +8,14 @@ import { SplashScreen } from 'src/components/loading-screen';
 
 // ----------------------------------------------------------------------
 
-// JWT
-const JwtLoginPage = lazy(() => import('src/pages/auth/jwt/login'));
-const JwtRegisterPage = lazy(() => import('src/pages/auth/jwt/register'));
+// Firebase
+const FirebaseLoginPage = lazy(() => import('src/pages/auth/firebase/login'));
+const FirebaseRegisterPage = lazy(() => import('src/pages/auth/firebase/register'));
 
 // ----------------------------------------------------------------------
 
-const authJwt = {
-  path: 'jwt',
+const authFirebase = {
+  path: 'Firebase',
   element: (
     <Suspense fallback={<SplashScreen />}>
       <Outlet />
@@ -27,7 +27,7 @@ const authJwt = {
       element: (
         <GuestGuard>
           <AuthClassicLayout>
-            <JwtLoginPage />
+            <FirebaseLoginPage />
           </AuthClassicLayout>
         </GuestGuard>
       ),
@@ -37,7 +37,7 @@ const authJwt = {
       element: (
         <GuestGuard>
           <AuthClassicLayout title="Manage the job more effectively with Minimal">
-            <JwtRegisterPage />
+            <FirebaseRegisterPage />
           </AuthClassicLayout>
         </GuestGuard>
       ),
@@ -48,6 +48,6 @@ const authJwt = {
 export const authRoutes = [
   {
     path: 'auth',
-    children: [authJwt],
+    children: [authFirebase],
   },
 ];
