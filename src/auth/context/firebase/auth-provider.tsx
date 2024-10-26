@@ -1,9 +1,15 @@
 import { useMemo, useEffect, useReducer, useCallback } from 'react';
+import {
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from 'firebase/auth';
 
-import axios, { endpoints } from 'src/utils/axios';
+import { auth } from 'src/firebase';
 
 import { AuthContext } from './auth-context';
-import { setSession, isValidToken } from './utils';
 import { AuthUserType, ActionMapType, AuthStateType } from '../../types';
 
 // ----------------------------------------------------------------------
@@ -73,8 +79,6 @@ const reducer = (state: AuthStateType, action: ActionsType) => {
 
 // ----------------------------------------------------------------------
 
-const STORAGE_KEY = 'accessToken';
-
 type Props = {
   children: React.ReactNode;
 };
@@ -82,68 +86,36 @@ type Props = {
 export function AuthProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const initialize = useCallback(async () => {
-    try {
-      const accessToken = sessionStorage.getItem(STORAGE_KEY);
-
-      if (accessToken && isValidToken(accessToken)) {
-        setSession(accessToken);
-
-        const res = await axios.get(endpoints.auth.me);
-
-        const { user } = res.data;
-
-        dispatch({
-          type: Types.INITIAL,
-          payload: {
-            user: {
-              ...user,
-              accessToken,
-            },
-          },
-        });
-      } else {
-        dispatch({
-          type: Types.INITIAL,
-          payload: {
-            user: null,
-          },
-        });
-      }
-    } catch (error) {
-      console.error(error);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       dispatch({
         type: Types.INITIAL,
         payload: {
-          user: null,
+          user,
         },
       });
-    }
-  }, []);
+    });
 
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
+    return () => unsubscribe();
+  }, []);
 
   // LOGIN
   const login = useCallback(async (email: string, password: string) => {
-    const data = {
-      email,
-      password,
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+    const { user } = userCredential;
+    const userData = {
+      id: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
     };
-
-    const res = await axios.post(endpoints.auth.login, data);
-
-    const { accessToken, user } = res.data;
-
-    setSession(accessToken);
 
     dispatch({
       type: Types.LOGIN,
       payload: {
         user: {
-          ...user,
-          accessToken,
+          ...userData,
         },
       },
     });
@@ -152,25 +124,24 @@ export function AuthProvider({ children }: Props) {
   // REGISTER
   const register = useCallback(
     async (email: string, password: string, firstName: string, lastName: string) => {
-      const data = {
-        email,
-        password,
-        firstName,
-        lastName,
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const { user } = userCredential;
+      await updateProfile(user, {
+        displayName: `${firstName} ${lastName}`,
+      });
+
+      const userData = {
+        id: user.uid,
+        email: user.email,
+        displayName: `${firstName} ${lastName}`,
+        photoURL: user.photoURL,
       };
-
-      const res = await axios.post(endpoints.auth.register, data);
-
-      const { accessToken, user } = res.data;
-
-      sessionStorage.setItem(STORAGE_KEY, accessToken);
 
       dispatch({
         type: Types.REGISTER,
         payload: {
           user: {
-            ...user,
-            accessToken,
+            ...userData,
           },
         },
       });
@@ -180,7 +151,7 @@ export function AuthProvider({ children }: Props) {
 
   // LOGOUT
   const logout = useCallback(async () => {
-    setSession(null);
+    await signOut(auth);
     dispatch({
       type: Types.LOGOUT,
     });
@@ -195,14 +166,18 @@ export function AuthProvider({ children }: Props) {
   const memoizedValue = useMemo(
     () => ({
       user: state.user,
-      method: 'jwt',
+      method: 'firebase',
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
       //
+      logout,
+      loginWithGoogle: async () => {}, // TODO: implement google login
+      loginWithGithub: async () => {}, // TODO: implement github login
+      loginWithTwitter: async () => {}, // TODO: implement twitter login
+      forgotPassword: async () => {}, // TODO: implement forgot password
       login,
       register,
-      logout,
     }),
     [login, logout, register, state.user, status]
   );

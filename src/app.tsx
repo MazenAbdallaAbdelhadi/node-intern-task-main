@@ -13,7 +13,7 @@ import ProgressBar from 'src/components/progress-bar';
 import { MotionLazy } from 'src/components/animate/motion-lazy';
 import { SettingsDrawer, SettingsProvider } from 'src/components/settings';
 
-import { AuthProvider } from 'src/auth/context/jwt';
+import { AuthProvider } from 'src/auth/context/firebase';
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ export default function App() {
     <AuthProvider>
       <SettingsProvider
         defaultSettings={{
-          themeMode: 'light', // 'light' | 'dark'
+          themeMode: 'dark', // 'light' | 'dark'
           themeDirection: 'ltr', //  'rtl' | 'ltr'
           themeContrast: 'default', // 'default' | 'bold'
           themeLayout: 'vertical', // 'vertical' | 'horizontal' | 'mini'
